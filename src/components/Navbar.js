@@ -6,7 +6,6 @@ function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Simulação de logout (limpar token, se houver)
     navigate('/login');
   };
 
@@ -29,6 +28,11 @@ function Navbar() {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
+            <li className="nav-item">
+              <Link className="nav-link" to="/orcamentos">
+                Orçamentos
+              </Link>
+            </li>
             <li className="nav-item">
               <Link className="nav-link" to="/notas">
                 Notas

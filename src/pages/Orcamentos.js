@@ -1,4 +1,4 @@
-// src/pages/Notas.js
+// src/pages/Orcamentos.js
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
@@ -22,7 +22,7 @@ const clientes = [
   { id: 2, nome: 'Maria Oliveira' },
 ];
 
-function Notas() {
+function Orcamentos() {
   // Estados para o formulário
   const [material, setMaterial] = useState('');
   const [metrosDisponiveis, setMetrosDisponiveis] = useState(0);
@@ -30,7 +30,9 @@ function Notas() {
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
   const [erro, setErro] = useState('');
-  // Estado para a lista de notas
+  // Estado para a lista de orçamentos
+  const [orcamentos, setOrcamentos] = useState([]);
+  // Estado para a lista de notas (para simular aprovação)
   const [notas, setNotas] = useState([]);
 
   // Atualiza material e preço ao selecionar
@@ -42,7 +44,7 @@ function Notas() {
     setPreco(mat ? mat.preco : '');
   };
 
-  // Cria uma nova nota
+  // Cria um novo orçamento
   const handleSubmit = (e) => {
     e.preventDefault();
     const qtd = parseFloat(quantidade);
@@ -59,33 +61,62 @@ function Notas() {
     }
 
     const total = qtd * precoFloat;
-    const novaNota = {
-      id: notas.length + 1,
+    const novoOrcamento = {
+      id: orcamentos.length + 1,
       cliente,
       material,
       quantidade: qtd,
       preco: precoFloat,
       total,
+      status: 'Pendente',
     };
 
-    setNotas([...notas, novaNota]);
+    setOrcamentos([...orcamentos, novoOrcamento]);
     setErro('');
     setQuantidade('');
     setMaterial('');
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
+  };
+
+  // Aprova um orçamento (converte em nota)
+  const handleAprovar = (orcamento) => {
+    const novaNota = {
+      id: notas.length + 1,
+      cliente: orcamento.cliente,
+      material: orcamento.material,
+      quantidade: orcamento.quantidade,
+      preco: orcamento.preco,
+      total: orcamento.total,
+    };
+
+    setNotas([...notas, novaNota]);
+    setOrcamentos(
+      orcamentos.map((o) =>
+        o.id === orcamento.id ? { ...o, status: 'Aprovado' } : o
+      )
+    );
     // Futuramente, o backend atualizará o estoque aqui
   };
 
-  // Exclui uma nota
+  // Rejeita um orçamento
+  const handleRejeitar = (id) => {
+    setOrcamentos(
+      orcamentos.map((o) =>
+        o.id === id ? { ...o, status: 'Rejeitado' } : o
+      )
+    );
+  };
+
+  // Exclui um orçamento
   const handleExcluir = (id) => {
-    setNotas(notas.filter((nota) => nota.id !== id));
+    setOrcamentos(orcamentos.filter((o) => o.id !== id));
   };
 
   return (
     <div className="container py-4">
-      <h1 className="text-center mb-4">Gerenciar Notas</h1>
+      <h1 className="text-center mb-4">Gerenciar Orçamentos</h1>
       <div className="row">
         {/* Formulário */}
         <div className="col-md-6">
@@ -143,7 +174,7 @@ function Notas() {
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Criar Nota
+              Criar Orçamento
             </button>
             {erro && (
               <div className="alert alert-warning mt-3" role="alert">
@@ -155,30 +186,46 @@ function Notas() {
         {/* Tabela */}
         <div className="col-md-6">
           <div className="card p-4 shadow-lg bg-light">
-            <h4>Lista de Notas</h4>
+            <h4>Lista de Orçamentos</h4>
             <table className="table table-striped">
               <thead>
                 <tr>
                   <th>Cliente</th>
                   <th>Material</th>
                   <th>Quantidade (m²)</th>
-                  <th>Preço (R$/m²)</th>
-                  <th>Total</th>
+                  <th>Total (R$)</th>
+                  <th>Status</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {notas.map((nota) => (
-                  <tr key={nota.id}>
-                    <td>{nota.cliente}</td>
-                    <td>{nota.material}</td>
-                    <td>{nota.quantidade}</td>
-                    <td>R$ {nota.preco.toFixed(2)}</td>
-                    <td>R$ {nota.total.toFixed(2)}</td>
+                {orcamentos.map((orcamento) => (
+                  <tr key={orcamento.id}>
+                    <td>{orcamento.cliente}</td>
+                    <td>{orcamento.material}</td>
+                    <td>{orcamento.quantidade}</td>
+                    <td>{orcamento.total.toFixed(2)}</td>
+                    <td>{orcamento.status}</td>
                     <td>
+                      {orcamento.status === 'Pendente' && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-success me-2"
+                            onClick={() => handleAprovar(orcamento)}
+                          >
+                            Aprovar
+                          </button>
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleRejeitar(orcamento.id)}
+                          >
+                            Rejeitar
+                          </button>
+                        </>
+                      )}
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleExcluir(nota.id)}
+                        onClick={() => handleExcluir(orcamento.id)}
                       >
                         Excluir
                       </button>
@@ -188,8 +235,11 @@ function Notas() {
               </tbody>
             </table>
             <p>
-              <strong>Total Acumulado:</strong> R${' '}
-              {notas.reduce((sum, nota) => sum + nota.total, 0).toFixed(2)}
+              <strong>Total Acumulado (Aprovados):</strong> R${' '}
+              {orcamentos
+                .filter((o) => o.status === 'Aprovado')
+                .reduce((sum, o) => sum + o.total, 0)
+                .toFixed(2)}
             </p>
           </div>
         </div>
@@ -198,4 +248,4 @@ function Notas() {
   );
 }
 
-export default Notas;
+export default Orcamentos;

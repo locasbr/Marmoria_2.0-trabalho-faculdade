@@ -9,6 +9,7 @@ import Notas from './pages/Notas';
 import Clientes from './pages/Clientes';
 import Marmores from './pages/Marmores';
 import Movimentacoes from './pages/Movimentacoes';
+import Orcamentos from './pages/Orcamentos';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/marmores" element={<Marmores />} />
           <Route path="/movimentacoes" element={<Movimentacoes />} />
+          <Route path="/orcamentos" element={<Orcamentos />} />
           <Route path="/" element={<Login />} />
         </Routes>
       </div>
