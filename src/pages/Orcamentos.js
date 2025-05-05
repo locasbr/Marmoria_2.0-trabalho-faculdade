@@ -30,10 +30,15 @@ function Orcamentos() {
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
   const [erro, setErro] = useState('');
-  // Estado para a lista de orçamentos
+  // Estado pra edição
+  const [editando, setEditando] = useState(null); // Item sendo editado
+  // Estado pra lista de orçamentos
   const [orcamentos, setOrcamentos] = useState([]);
-  // Estado para a lista de notas (para simular aprovação)
+  // Estado pra notas (pra simular aprovação)
   const [notas, setNotas] = useState([]);
+  // Estados pra filtros
+  const [filtroCliente, setFiltroCliente] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('');
 
   // Atualiza material e preço ao selecionar
   const handleMaterialChange = (e) => {
@@ -44,7 +49,7 @@ function Orcamentos() {
     setPreco(mat ? mat.preco : '');
   };
 
-  // Cria um novo orçamento
+  // Cria ou edita um orçamento
   const handleSubmit = (e) => {
     e.preventDefault();
     const qtd = parseFloat(quantidade);
@@ -61,23 +66,48 @@ function Orcamentos() {
     }
 
     const total = qtd * precoFloat;
-    const novoOrcamento = {
-      id: orcamentos.length + 1,
-      cliente,
-      material,
-      quantidade: qtd,
-      preco: precoFloat,
-      total,
-      status: 'Pendente',
-    };
 
-    setOrcamentos([...orcamentos, novoOrcamento]);
+    if (editando) {
+      // Edição
+      setOrcamentos(
+        orcamentos.map((o) =>
+          o.id === editando.id
+            ? { ...o, cliente, material, quantidade: qtd, preco: precoFloat, total }
+            : o
+        )
+      );
+      setEditando(null);
+    } else {
+      // Criação
+      const novoOrcamento = {
+        id: orcamentos.length + 1,
+        cliente,
+        material,
+        quantidade: qtd,
+        preco: precoFloat,
+        total,
+        status: 'Pendente',
+      };
+      setOrcamentos([...orcamentos, novoOrcamento]);
+    }
+
     setErro('');
     setQuantidade('');
     setMaterial('');
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
+  };
+
+  // Preenche o formulário pra edição
+  const handleEditar = (orcamento) => {
+    setEditando(orcamento);
+    setCliente(orcamento.cliente);
+    setMaterial(orcamento.material);
+    setQuantidade(orcamento.quantidade);
+    setPreco(orcamento.preco);
+    const mat = materiais.find((m) => m.nome === orcamento.material);
+    setMetrosDisponiveis(mat ? mat.metros : 0);
   };
 
   // Aprova um orçamento (converte em nota)
@@ -97,7 +127,6 @@ function Orcamentos() {
         o.id === orcamento.id ? { ...o, status: 'Aprovado' } : o
       )
     );
-    // Futuramente, o backend atualizará o estoque aqui
   };
 
   // Rejeita um orçamento
@@ -113,6 +142,12 @@ function Orcamentos() {
   const handleExcluir = (id) => {
     setOrcamentos(orcamentos.filter((o) => o.id !== id));
   };
+
+  // Filtra os orçamentos
+  const orcamentosFiltrados = orcamentos.filter((o) =>
+    o.cliente.toLowerCase().includes(filtroCliente.toLowerCase()) &&
+    (filtroStatus ? o.status === filtroStatus : true)
+  );
 
   return (
     <div className="container py-4">
@@ -174,8 +209,24 @@ function Orcamentos() {
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Criar Orçamento
+              {editando ? 'Salvar Alterações' : 'Criar Orçamento'}
             </button>
+            {editando && (
+              <button
+                type="button"
+                className="btn btn-secondary mt-2"
+                onClick={() => {
+                  setEditando(null);
+                  setQuantidade('');
+                  setMaterial('');
+                  setPreco('');
+                  setMetrosDisponiveis(0);
+                  setCliente('');
+                }}
+              >
+                Cancelar Edição
+              </button>
+            )}
             {erro && (
               <div className="alert alert-warning mt-3" role="alert">
                 {erro}
@@ -187,6 +238,30 @@ function Orcamentos() {
         <div className="col-md-6">
           <div className="card p-4 shadow-lg bg-light">
             <h4>Lista de Orçamentos</h4>
+            {/* Filtros */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Buscar por cliente"
+                  value={filtroCliente}
+                  onChange={(e) => setFiltroCliente(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <select
+                  className="form-select"
+                  value={filtroStatus}
+                  onChange={(e) => setFiltroStatus(e.target.value)}
+                >
+                  <option value="">Todos os Status</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Aprovado">Aprovado</option>
+                  <option value="Rejeitado">Rejeitado</option>
+                </select>
+              </div>
+            </div>
             <table className="table table-striped">
               <thead>
                 <tr>
@@ -199,7 +274,7 @@ function Orcamentos() {
                 </tr>
               </thead>
               <tbody>
-                {orcamentos.map((orcamento) => (
+                {orcamentosFiltrados.map((orcamento) => (
                   <tr key={orcamento.id}>
                     <td>{orcamento.cliente}</td>
                     <td>{orcamento.material}</td>
@@ -207,6 +282,13 @@ function Orcamentos() {
                     <td>{orcamento.total.toFixed(2)}</td>
                     <td>{orcamento.status}</td>
                     <td>
+                      <button
+                        className="btn btn-sm btn-primary me-2"
+                        onClick={() => handleEditar(orcamento)}
+                        disabled={orcamento.status !== 'Pendente'} // Só edita se estiver pendente
+                      >
+                        Editar
+                      </button>
                       {orcamento.status === 'Pendente' && (
                         <>
                           <button
@@ -236,7 +318,7 @@ function Orcamentos() {
             </table>
             <p>
               <strong>Total Acumulado (Aprovados):</strong> R${' '}
-              {orcamentos
+              {orcamentosFiltrados
                 .filter((o) => o.status === 'Aprovado')
                 .reduce((sum, o) => sum + o.total, 0)
                 .toFixed(2)}

@@ -6,6 +6,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove o token
     navigate('/login');
   };
 

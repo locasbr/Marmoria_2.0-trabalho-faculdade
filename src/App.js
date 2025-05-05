@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Notas from './pages/Notas';
 import Clientes from './pages/Clientes';
@@ -18,11 +19,46 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/notas" element={<Notas />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/marmores" element={<Marmores />} />
-          <Route path="/movimentacoes" element={<Movimentacoes />} />
-          <Route path="/orcamentos" element={<Orcamentos />} />
+          <Route
+            path="/orcamentos"
+            element={
+              <ProtectedRoute>
+                <Orcamentos />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notas"
+            element={
+              <ProtectedRoute>
+                <Notas />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clientes"
+            element={
+              <ProtectedRoute>
+                <Clientes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/marmores"
+            element={
+              <ProtectedRoute>
+                <Marmores />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/movimentacoes"
+            element={
+              <ProtectedRoute>
+                <Movimentacoes />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Login />} />
         </Routes>
       </div>

@@ -30,8 +30,12 @@ function Notas() {
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
   const [erro, setErro] = useState('');
-  // Estado para a lista de notas
+  // Estado pra edição
+  const [editando, setEditando] = useState(null);
+  // Estado pra lista de notas
   const [notas, setNotas] = useState([]);
+  // Estado pra filtro
+  const [filtroCliente, setFiltroCliente] = useState('');
 
   // Atualiza material e preço ao selecionar
   const handleMaterialChange = (e) => {
@@ -42,7 +46,7 @@ function Notas() {
     setPreco(mat ? mat.preco : '');
   };
 
-  // Cria uma nova nota
+  // Cria ou edita uma nota
   const handleSubmit = (e) => {
     e.preventDefault();
     const qtd = parseFloat(quantidade);
@@ -59,29 +63,58 @@ function Notas() {
     }
 
     const total = qtd * precoFloat;
-    const novaNota = {
-      id: notas.length + 1,
-      cliente,
-      material,
-      quantidade: qtd,
-      preco: precoFloat,
-      total,
-    };
 
-    setNotas([...notas, novaNota]);
+    if (editando) {
+      // Edição
+      setNotas(
+        notas.map((n) =>
+          n.id === editando.id
+            ? { ...n, cliente, material, quantidade: qtd, preco: precoFloat, total }
+            : n
+        )
+      );
+      setEditando(null);
+    } else {
+      // Criação
+      const novaNota = {
+        id: notas.length + 1,
+        cliente,
+        material,
+        quantidade: qtd,
+        preco: precoFloat,
+        total,
+      };
+      setNotas([...notas, novaNota]);
+    }
+
     setErro('');
     setQuantidade('');
     setMaterial('');
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
-    // Futuramente, o backend atualizará o estoque aqui
+  };
+
+  // Preenche o formulário pra edição
+  const handleEditar = (nota) => {
+    setEditando(nota);
+    setCliente(nota.cliente);
+    setMaterial(nota.material);
+    setQuantidade(nota.quantidade);
+    setPreco(nota.preco);
+    const mat = materiais.find((m) => m.nome === nota.material);
+    setMetrosDisponiveis(mat ? mat.metros : 0);
   };
 
   // Exclui uma nota
   const handleExcluir = (id) => {
     setNotas(notas.filter((nota) => nota.id !== id));
   };
+
+  // Filtra as notas
+  const notasFiltradas = notas.filter((n) =>
+    n.cliente.toLowerCase().includes(filtroCliente.toLowerCase())
+  );
 
   return (
     <div className="container py-4">
@@ -143,8 +176,24 @@ function Notas() {
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Criar Nota
+              {editando ? 'Salvar Alterações' : 'Criar Nota'}
             </button>
+            {editando && (
+              <button
+                type="button"
+                className="btn btn-secondary mt-2"
+                onClick={() => {
+                  setEditando(null);
+                  setQuantidade('');
+                  setMaterial('');
+                  setPreco('');
+                  setMetrosDisponiveis(0);
+                  setCliente('');
+                }}
+              >
+                Cancelar Edição
+              </button>
+            )}
             {erro && (
               <div className="alert alert-warning mt-3" role="alert">
                 {erro}
@@ -156,6 +205,16 @@ function Notas() {
         <div className="col-md-6">
           <div className="card p-4 shadow-lg bg-light">
             <h4>Lista de Notas</h4>
+            {/* Filtro */}
+            <div className="mb-3">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Buscar por cliente"
+                value={filtroCliente}
+                onChange={(e) => setFiltroCliente(e.target.value)}
+              />
+            </div>
             <table className="table table-striped">
               <thead>
                 <tr>
@@ -168,7 +227,7 @@ function Notas() {
                 </tr>
               </thead>
               <tbody>
-                {notas.map((nota) => (
+                {notasFiltradas.map((nota) => (
                   <tr key={nota.id}>
                     <td>{nota.cliente}</td>
                     <td>{nota.material}</td>
@@ -176,6 +235,12 @@ function Notas() {
                     <td>R$ {nota.preco.toFixed(2)}</td>
                     <td>R$ {nota.total.toFixed(2)}</td>
                     <td>
+                      <button
+                        className="btn btn-sm btn-primary me-2"
+                        onClick={() => handleEditar(nota)}
+                      >
+                        Editar
+                      </button>
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleExcluir(nota.id)}
@@ -189,7 +254,7 @@ function Notas() {
             </table>
             <p>
               <strong>Total Acumulado:</strong> R${' '}
-              {notas.reduce((sum, nota) => sum + nota.total, 0).toFixed(2)}
+              {notasFiltradas.reduce((sum, nota) => sum + nota.total, 0).toFixed(2)}
             </p>
           </div>
         </div>
