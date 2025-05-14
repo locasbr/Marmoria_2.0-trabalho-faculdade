@@ -1,4 +1,3 @@
-// src/pages/Notas.js
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
@@ -29,6 +28,9 @@ function Notas() {
   const [quantidade, setQuantidade] = useState('');
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
+  const [clienteInput, setClienteInput] = useState(''); // Novo estado para o input de busca
+  const [sugestoes, setSugestoes] = useState([]); // Novo estado para sugestões
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false); // Controla visibilidade das sugestões
   const [erro, setErro] = useState('');
   // Estado pra edição
   const [editando, setEditando] = useState(null);
@@ -44,6 +46,32 @@ function Notas() {
     const mat = materiais.find((m) => m.nome === nome);
     setMetrosDisponiveis(mat ? mat.metros : 0);
     setPreco(mat ? mat.preco : '');
+  };
+
+  // Lida com a busca de clientes
+  const handleClienteInputChange = (e) => {
+    const valor = e.target.value;
+    setClienteInput(valor);
+    setCliente(valor); // Mantém o valor do cliente para o formulário
+
+    if (valor.trim() === '') {
+      setSugestoes([]);
+      setMostrarSugestoes(false);
+    } else {
+      const filtrados = clientes.filter((cli) =>
+        cli.nome.toLowerCase().includes(valor.toLowerCase())
+      );
+      setSugestoes(filtrados);
+      setMostrarSugestoes(true);
+    }
+  };
+
+  // Seleciona uma sugestão
+  const handleSelecionarSugestao = (nome) => {
+    setCliente(nome);
+    setClienteInput(nome);
+    setSugestoes([]);
+    setMostrarSugestoes(false);
   };
 
   // Cria ou edita uma nota
@@ -93,12 +121,16 @@ function Notas() {
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
+    setClienteInput('');
+    setSugestoes([]);
+    setMostrarSugestoes(false);
   };
 
   // Preenche o formulário pra edição
   const handleEditar = (nota) => {
     setEditando(nota);
     setCliente(nota.cliente);
+    setClienteInput(nota.cliente); // Preenche o input de busca
     setMaterial(nota.material);
     setQuantidade(nota.quantidade);
     setPreco(nota.preco);
@@ -123,21 +155,33 @@ function Notas() {
         {/* Formulário */}
         <div className="col-md-6">
           <form onSubmit={handleSubmit} className="card p-4 shadow-lg">
-            <div className="mb-3">
+            <div className="mb-3 position-relative">
               <label className="form-label">Cliente</label>
-              <select
-                className="form-select"
-                value={cliente}
-                onChange={(e) => setCliente(e.target.value)}
+              <input
+                type="text"
+                className="form-control"
+                value={clienteInput}
+                onChange={handleClienteInputChange}
+                placeholder="Digite o nome do cliente"
                 required
-              >
-                <option value="">Selecione um cliente</option>
-                {clientes.map((cli) => (
-                  <option key={cli.id} value={cli.nome}>
-                    {cli.nome}
-                  </option>
-                ))}
-              </select>
+              />
+              {mostrarSugestoes && sugestoes.length > 0 && (
+                <ul
+                  className="list-group position-absolute w-100"
+                  style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
+                >
+                  {sugestoes.map((cli) => (
+                    <li
+                      key={cli.id}
+                      className="list-group-item list-group-item-action"
+                      onClick={() => handleSelecionarSugestao(cli.nome)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {cli.nome}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="mb-3">
               <label className="form-label">Material</label>
@@ -189,6 +233,7 @@ function Notas() {
                   setPreco('');
                   setMetrosDisponiveis(0);
                   setCliente('');
+                  setClienteInput('');
                 }}
               >
                 Cancelar Edição
