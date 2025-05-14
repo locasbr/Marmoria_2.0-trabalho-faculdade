@@ -1,3 +1,4 @@
+// src/pages/Orcamentos.js
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
@@ -22,62 +23,68 @@ const clientes = [
 ];
 
 function Orcamentos() {
-  // Estados para o formulário
   const [material, setMaterial] = useState('');
   const [metrosDisponiveis, setMetrosDisponiveis] = useState(0);
   const [quantidade, setQuantidade] = useState('');
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
-  const [clienteInput, setClienteInput] = useState(''); // Novo estado para o input de busca
-  const [sugestoes, setSugestoes] = useState([]); // Novo estado para sugestões
-  const [mostrarSugestoes, setMostrarSugestoes] = useState(false); // Controla visibilidade das sugestões
   const [erro, setErro] = useState('');
-  // Estado pra edição
   const [editando, setEditando] = useState(null);
-  // Estado pra lista de orçamentos
   const [orcamentos, setOrcamentos] = useState([]);
-  // Estado pra notas (pra simular aprovação)
   const [notas, setNotas] = useState([]);
-  // Estados pra filtros
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
 
-  // Atualiza material e preço ao selecionar
-  const handleMaterialChange = (e) => {
-    const nome = e.target.value;
+  // Estado pra sugestões de clientes e materiais
+  const [sugestoesClientes, setSugestoesClientes] = useState([]);
+  const [sugestoesMateriais, setSugestoesMateriais] = useState([]);
+
+  // Filtra sugestões de clientes
+  const handleClienteInput = (e) => {
+    const valor = e.target.value;
+    setCliente(valor);
+    if (valor) {
+      const sugestoes = clientes
+        .filter((c) => c.nome.toLowerCase().includes(valor.toLowerCase()))
+        .map((c) => c.nome);
+      setSugestoesClientes(sugestoes);
+    } else {
+      setSugestoesClientes([]);
+    }
+  };
+
+  // Seleciona cliente da sugestão
+  const handleSelecionarCliente = (nome) => {
+    setCliente(nome);
+    setSugestoesClientes([]);
+  };
+
+  // Filtra sugestões de materiais
+  const handleMaterialInput = (e) => {
+    const valor = e.target.value;
+    setMaterial(valor);
+    const mat = materiais.find((m) => m.nome === valor);
+    setMetrosDisponiveis(mat ? mat.metros : 0);
+    setPreco(mat ? mat.preco : '');
+    if (valor) {
+      const sugestoes = materiais
+        .filter((m) => m.nome.toLowerCase().includes(valor.toLowerCase()))
+        .map((m) => m.nome);
+      setSugestoesMateriais(sugestoes);
+    } else {
+      setSugestoesMateriais([]);
+    }
+  };
+
+  // Seleciona material da sugestão
+  const handleSelecionarMaterial = (nome) => {
     setMaterial(nome);
     const mat = materiais.find((m) => m.nome === nome);
     setMetrosDisponiveis(mat ? mat.metros : 0);
     setPreco(mat ? mat.preco : '');
+    setSugestoesMateriais([]);
   };
 
-  // Lida com a busca de clientes
-  const handleClienteInputChange = (e) => {
-    const valor = e.target.value;
-    setClienteInput(valor);
-    setCliente(valor); // Mantém o valor do cliente para o formulário
-
-    if (valor.trim() === '') {
-      setSugestoes([]);
-      setMostrarSugestoes(false);
-    } else {
-      const filtrados = clientes.filter((cli) =>
-        cli.nome.toLowerCase().includes(valor.toLowerCase())
-      );
-      setSugestoes(filtrados);
-      setMostrarSugestoes(true);
-    }
-  };
-
-  // Seleciona uma sugestão
-  const handleSelecionarSugestao = (nome) => {
-    setCliente(nome);
-    setClienteInput(nome);
-    setSugestoes([]);
-    setMostrarSugestoes(false);
-  };
-
-  // Cria ou edita um orçamento
   const handleSubmit = (e) => {
     e.preventDefault();
     const qtd = parseFloat(quantidade);
@@ -96,7 +103,6 @@ function Orcamentos() {
     const total = qtd * precoFloat;
 
     if (editando) {
-      // Edição
       setOrcamentos(
         orcamentos.map((o) =>
           o.id === editando.id
@@ -106,7 +112,6 @@ function Orcamentos() {
       );
       setEditando(null);
     } else {
-      // Criação
       const novoOrcamento = {
         id: orcamentos.length + 1,
         cliente,
@@ -125,24 +130,22 @@ function Orcamentos() {
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
-    setClienteInput('');
-    setSugestoes([]);
-    setMostrarSugestoes(false);
+    setSugestoesClientes([]);
+    setSugestoesMateriais([]);
   };
 
-  // Preenche o formulário pra edição
   const handleEditar = (orcamento) => {
     setEditando(orcamento);
     setCliente(orcamento.cliente);
-    setClienteInput(orcamento.cliente); // Preenche o input de busca
     setMaterial(orcamento.material);
     setQuantidade(orcamento.quantidade);
     setPreco(orcamento.preco);
     const mat = materiais.find((m) => m.nome === orcamento.material);
     setMetrosDisponiveis(mat ? mat.metros : 0);
+    setSugestoesClientes([]);
+    setSugestoesMateriais([]);
   };
 
-  // Aprova um orçamento (converte em nota)
   const handleAprovar = (orcamento) => {
     const novaNota = {
       id: notas.length + 1,
@@ -152,7 +155,6 @@ function Orcamentos() {
       preco: orcamento.preco,
       total: orcamento.total,
     };
-
     setNotas([...notas, novaNota]);
     setOrcamentos(
       orcamentos.map((o) =>
@@ -161,7 +163,6 @@ function Orcamentos() {
     );
   };
 
-  // Rejeita um orçamento
   const handleRejeitar = (id) => {
     setOrcamentos(
       orcamentos.map((o) =>
@@ -170,12 +171,10 @@ function Orcamentos() {
     );
   };
 
-  // Exclui um orçamento
   const handleExcluir = (id) => {
     setOrcamentos(orcamentos.filter((o) => o.id !== id));
   };
 
-  // Filtra os orçamentos
   const orcamentosFiltrados = orcamentos.filter((o) =>
     o.cliente.toLowerCase().includes(filtroCliente.toLowerCase()) &&
     (filtroStatus ? o.status === filtroStatus : true)
@@ -185,52 +184,57 @@ function Orcamentos() {
     <div className="container py-4">
       <h1 className="text-center mb-4">Gerenciar Orçamentos</h1>
       <div className="row">
-        {/* Formulário */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6 mb-3">
           <form onSubmit={handleSubmit} className="card p-4 shadow-lg">
             <div className="mb-3 position-relative">
               <label className="form-label">Cliente</label>
               <input
                 type="text"
                 className="form-control"
-                value={clienteInput}
-                onChange={handleClienteInputChange}
+                value={cliente}
+                onChange={handleClienteInput}
                 placeholder="Digite o nome do cliente"
                 required
               />
-              {mostrarSugestoes && sugestoes.length > 0 && (
-                <ul
-                  className="list-group position-absolute w-100"
-                  style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
-                >
-                  {sugestoes.map((cli) => (
+              {sugestoesClientes.length > 0 && (
+                <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                  {sugestoesClientes.map((sugestao, index) => (
                     <li
-                      key={cli.id}
-                      className="list-group-item list-group-item-action"
-                      onClick={() => handleSelecionarSugestao(cli.nome)}
+                      key={index}
+                      className="list-group-item"
+                      onClick={() => handleSelecionarCliente(sugestao)}
                       style={{ cursor: 'pointer' }}
                     >
-                      {cli.nome}
+                      {sugestao}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-            <div className="mb-3">
+            <div className="mb-3 position-relative">
               <label className="form-label">Material</label>
-              <select
-                className="form-select"
+              <input
+                type="text"
+                className="form-control"
                 value={material}
-                onChange={handleMaterialChange}
+                onChange={handleMaterialInput}
+                placeholder="Digite o nome do material"
                 required
-              >
-                <option value="">Selecione um material</option>
-                {materiais.map((mat) => (
-                  <option key={mat.id} value={mat.nome}>
-                    {mat.nome} - {mat.metros}m² disponíveis
-                  </option>
-                ))}
-              </select>
+              />
+              {sugestoesMateriais.length > 0 && (
+                <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                  {sugestoesMateriais.map((sugestao, index) => (
+                    <li
+                      key={index}
+                      className="list-group-item"
+                      onClick={() => handleSelecionarMaterial(sugestao)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {sugestao}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="mb-3">
               <label className="form-label">Quantidade (m²)</label>
@@ -252,13 +256,13 @@ function Orcamentos() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary w-100">
               {editando ? 'Salvar Alterações' : 'Criar Orçamento'}
             </button>
             {editando && (
               <button
                 type="button"
-                className="btn btn-secondary mt-2"
+                className="btn btn-secondary mt-2 w-100"
                 onClick={() => {
                   setEditando(null);
                   setQuantidade('');
@@ -266,7 +270,8 @@ function Orcamentos() {
                   setPreco('');
                   setMetrosDisponiveis(0);
                   setCliente('');
-                  setClienteInput('');
+                  setSugestoesClientes([]);
+                  setSugestoesMateriais([]);
                 }}
               >
                 Cancelar Edição
@@ -279,13 +284,11 @@ function Orcamentos() {
             )}
           </form>
         </div>
-        {/* Tabela */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6 mb-3">
           <div className="card p-4 shadow-lg bg-light">
             <h4>Lista de Orçamentos</h4>
-            {/* Filtros */}
             <div className="row mb-3">
-              <div className="col-md-6">
+              <div className="col-12 col-sm-6 mb-2 mb-sm-0">
                 <input
                   type="text"
                   className="form-control"
@@ -294,7 +297,7 @@ function Orcamentos() {
                   onChange={(e) => setFiltroCliente(e.target.value)}
                 />
               </div>
-              <div className="col-md-6">
+              <div className="col-12 col-sm-6">
                 <select
                   className="form-select"
                   value={filtroStatus}
@@ -307,60 +310,64 @@ function Orcamentos() {
                 </select>
               </div>
             </div>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Material</th>
-                  <th>Quantidade (m²)</th>
-                  <th>Total (R$)</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orcamentosFiltrados.map((orcamento) => (
-                  <tr key={orcamento.id}>
-                    <td>{orcamento.cliente}</td>
-                    <td>{orcamento.material}</td>
-                    <td>{orcamento.quantidade}</td>
-                    <td>{orcamento.total.toFixed(2)}</td>
-                    <td>{orcamento.status}</td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-primary me-2"
-                        onClick={() => handleEditar(orcamento)}
-                        disabled={orcamento.status !== 'Pendente'}
-                      >
-                        Editar
-                      </button>
-                      {orcamento.status === 'Pendente' && (
-                        <>
-                          <button
-                            className="btn btn-sm btn-success me-2"
-                            onClick={() => handleAprovar(orcamento)}
-                          >
-                            Aprovar
-                          </button>
-                          <button
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleRejeitar(orcamento.id)}
-                          >
-                            Rejeitar
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleExcluir(orcamento.id)}
-                      >
-                        Excluir
-                      </button>
-                    </td>
+            <div className="table-responsive">
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Material</th>
+                    <th>Quantidade (m²)</th>
+                    <th>Total (R$)</th>
+                    <th>Status</th>
+                    <th>Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {orcamentosFiltrados.map((orcamento) => (
+                    <tr key={orcamento.id}>
+                      <td>{orcamento.cliente}</td>
+                      <td>{orcamento.material}</td>
+                      <td>{orcamento.quantidade}</td>
+                      <td>{orcamento.total.toFixed(2)}</td>
+                      <td>{orcamento.status}</td>
+                      <td>
+                        <div className="d-flex flex-wrap gap-1">
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleEditar(orcamento)}
+                            disabled={orcamento.status !== 'Pendente'}
+                          >
+                            Editar
+                          </button>
+                          {orcamento.status === 'Pendente' && (
+                            <>
+                              <button
+                                className="btn btn-sm btn-success"
+                                onClick={() => handleAprovar(orcamento)}
+                              >
+                                Aprovar
+                              </button>
+                              <button
+                                className="btn btn-sm btn-warning"
+                                onClick={() => handleRejeitar(orcamento.id)}
+                              >
+                                Rejeitar
+                              </button>
+                            </>
+                          )}
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleExcluir(orcamento.id)}
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <p>
               <strong>Total Acumulado (Aprovados):</strong> R${' '}
               {orcamentosFiltrados

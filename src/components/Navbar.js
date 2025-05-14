@@ -6,20 +6,20 @@ function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Remove o token
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
-        <Link className="navbar-brand" to="/orcamentos">
+        <Link className="navbar-brand" to="/">
           Marmoraria
         </Link>
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
+          data-bs-toggle="collapse" // Bootstrap usa isso pra colapsar o menu
           data-bs-target="#navbarNav"
           aria-controls="navbarNav"
           aria-expanded="false"

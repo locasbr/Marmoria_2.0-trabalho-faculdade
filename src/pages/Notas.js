@@ -1,3 +1,4 @@
+// src/pages/Notas.js
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
@@ -22,59 +23,61 @@ const clientes = [
 ];
 
 function Notas() {
-  // Estados para o formulário
   const [material, setMaterial] = useState('');
   const [metrosDisponiveis, setMetrosDisponiveis] = useState(0);
   const [quantidade, setQuantidade] = useState('');
   const [preco, setPreco] = useState('');
   const [cliente, setCliente] = useState('');
-  const [clienteInput, setClienteInput] = useState(''); // Novo estado para o input de busca
-  const [sugestoes, setSugestoes] = useState([]); // Novo estado para sugestões
-  const [mostrarSugestoes, setMostrarSugestoes] = useState(false); // Controla visibilidade das sugestões
   const [erro, setErro] = useState('');
-  // Estado pra edição
   const [editando, setEditando] = useState(null);
-  // Estado pra lista de notas
   const [notas, setNotas] = useState([]);
-  // Estado pra filtro
   const [filtroCliente, setFiltroCliente] = useState('');
 
-  // Atualiza material e preço ao selecionar
-  const handleMaterialChange = (e) => {
-    const nome = e.target.value;
+  const [sugestoesClientes, setSugestoesClientes] = useState([]);
+  const [sugestoesMateriais, setSugestoesMateriais] = useState([]);
+
+  const handleClienteInput = (e) => {
+    const valor = e.target.value;
+    setCliente(valor);
+    if (valor) {
+      const sugestoes = clientes
+        .filter((c) => c.nome.toLowerCase().includes(valor.toLowerCase()))
+        .map((c) => c.nome);
+      setSugestoesClientes(sugestoes);
+    } else {
+      setSugestoesClientes([]);
+    }
+  };
+
+  const handleSelecionarCliente = (nome) => {
+    setCliente(nome);
+    setSugestoesClientes([]);
+  };
+
+  const handleMaterialInput = (e) => {
+    const valor = e.target.value;
+    setMaterial(valor);
+    const mat = materiais.find((m) => m.nome === valor);
+    setMetrosDisponiveis(mat ? mat.metros : 0);
+    setPreco(mat ? mat.preco : '');
+    if (valor) {
+      const sugestoes = materiais
+        .filter((m) => m.nome.toLowerCase().includes(valor.toLowerCase()))
+        .map((m) => m.nome);
+      setSugestoesMateriais(sugestoes);
+    } else {
+      setSugestoesMateriais([]);
+    }
+  };
+
+  const handleSelecionarMaterial = (nome) => {
     setMaterial(nome);
     const mat = materiais.find((m) => m.nome === nome);
     setMetrosDisponiveis(mat ? mat.metros : 0);
     setPreco(mat ? mat.preco : '');
+    setSugestoesMateriais([]);
   };
 
-  // Lida com a busca de clientes
-  const handleClienteInputChange = (e) => {
-    const valor = e.target.value;
-    setClienteInput(valor);
-    setCliente(valor); // Mantém o valor do cliente para o formulário
-
-    if (valor.trim() === '') {
-      setSugestoes([]);
-      setMostrarSugestoes(false);
-    } else {
-      const filtrados = clientes.filter((cli) =>
-        cli.nome.toLowerCase().includes(valor.toLowerCase())
-      );
-      setSugestoes(filtrados);
-      setMostrarSugestoes(true);
-    }
-  };
-
-  // Seleciona uma sugestão
-  const handleSelecionarSugestao = (nome) => {
-    setCliente(nome);
-    setClienteInput(nome);
-    setSugestoes([]);
-    setMostrarSugestoes(false);
-  };
-
-  // Cria ou edita uma nota
   const handleSubmit = (e) => {
     e.preventDefault();
     const qtd = parseFloat(quantidade);
@@ -93,7 +96,6 @@ function Notas() {
     const total = qtd * precoFloat;
 
     if (editando) {
-      // Edição
       setNotas(
         notas.map((n) =>
           n.id === editando.id
@@ -103,7 +105,6 @@ function Notas() {
       );
       setEditando(null);
     } else {
-      // Criação
       const novaNota = {
         id: notas.length + 1,
         cliente,
@@ -121,29 +122,26 @@ function Notas() {
     setPreco('');
     setMetrosDisponiveis(0);
     setCliente('');
-    setClienteInput('');
-    setSugestoes([]);
-    setMostrarSugestoes(false);
+    setSugestoesClientes([]);
+    setSugestoesMateriais([]);
   };
 
-  // Preenche o formulário pra edição
   const handleEditar = (nota) => {
     setEditando(nota);
     setCliente(nota.cliente);
-    setClienteInput(nota.cliente); // Preenche o input de busca
     setMaterial(nota.material);
     setQuantidade(nota.quantidade);
     setPreco(nota.preco);
     const mat = materiais.find((m) => m.nome === nota.material);
     setMetrosDisponiveis(mat ? mat.metros : 0);
+    setSugestoesClientes([]);
+    setSugestoesMateriais([]);
   };
 
-  // Exclui uma nota
   const handleExcluir = (id) => {
     setNotas(notas.filter((nota) => nota.id !== id));
   };
 
-  // Filtra as notas
   const notasFiltradas = notas.filter((n) =>
     n.cliente.toLowerCase().includes(filtroCliente.toLowerCase())
   );
@@ -152,52 +150,57 @@ function Notas() {
     <div className="container py-4">
       <h1 className="text-center mb-4">Gerenciar Notas</h1>
       <div className="row">
-        {/* Formulário */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6 mb-3">
           <form onSubmit={handleSubmit} className="card p-4 shadow-lg">
             <div className="mb-3 position-relative">
               <label className="form-label">Cliente</label>
               <input
                 type="text"
                 className="form-control"
-                value={clienteInput}
-                onChange={handleClienteInputChange}
+                value={cliente}
+                onChange={handleClienteInput}
                 placeholder="Digite o nome do cliente"
                 required
               />
-              {mostrarSugestoes && sugestoes.length > 0 && (
-                <ul
-                  className="list-group position-absolute w-100"
-                  style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
-                >
-                  {sugestoes.map((cli) => (
+              {sugestoesClientes.length > 0 && (
+                <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                  {sugestoesClientes.map((sugestao, index) => (
                     <li
-                      key={cli.id}
-                      className="list-group-item list-group-item-action"
-                      onClick={() => handleSelecionarSugestao(cli.nome)}
+                      key={index}
+                      className="list-group-item"
+                      onClick={() => handleSelecionarCliente(sugestao)}
                       style={{ cursor: 'pointer' }}
                     >
-                      {cli.nome}
+                      {sugestao}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-            <div className="mb-3">
+            <div className="mb-3 position-relative">
               <label className="form-label">Material</label>
-              <select
-                className="form-select"
+              <input
+                type="text"
+                className="form-control"
                 value={material}
-                onChange={handleMaterialChange}
+                onChange={handleMaterialInput}
+                placeholder="Digite o nome do material"
                 required
-              >
-                <option value="">Selecione um material</option>
-                {materiais.map((mat) => (
-                  <option key={mat.id} value={mat.nome}>
-                    {mat.nome} - {mat.metros}m² disponíveis
-                  </option>
-                ))}
-              </select>
+              />
+              {sugestoesMateriais.length > 0 && (
+                <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                  {sugestoesMateriais.map((sugestao, index) => (
+                    <li
+                      key={index}
+                      className="list-group-item"
+                      onClick={() => handleSelecionarMaterial(sugestao)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {sugestao}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="mb-3">
               <label className="form-label">Quantidade (m²)</label>
@@ -219,13 +222,13 @@ function Notas() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary w-100">
               {editando ? 'Salvar Alterações' : 'Criar Nota'}
             </button>
             {editando && (
               <button
                 type="button"
-                className="btn btn-secondary mt-2"
+                className="btn btn-secondary mt-2 w-100"
                 onClick={() => {
                   setEditando(null);
                   setQuantidade('');
@@ -233,7 +236,8 @@ function Notas() {
                   setPreco('');
                   setMetrosDisponiveis(0);
                   setCliente('');
-                  setClienteInput('');
+                  setSugestoesClientes([]);
+                  setSugestoesMateriais([]);
                 }}
               >
                 Cancelar Edição
@@ -246,11 +250,9 @@ function Notas() {
             )}
           </form>
         </div>
-        {/* Tabela */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6 mb-3">
           <div className="card p-4 shadow-lg bg-light">
             <h4>Lista de Notas</h4>
-            {/* Filtro */}
             <div className="mb-3">
               <input
                 type="text"
@@ -260,43 +262,47 @@ function Notas() {
                 onChange={(e) => setFiltroCliente(e.target.value)}
               />
             </div>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Material</th>
-                  <th>Quantidade (m²)</th>
-                  <th>Preço (R$/m²)</th>
-                  <th>Total</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notasFiltradas.map((nota) => (
-                  <tr key={nota.id}>
-                    <td>{nota.cliente}</td>
-                    <td>{nota.material}</td>
-                    <td>{nota.quantidade}</td>
-                    <td>R$ {nota.preco.toFixed(2)}</td>
-                    <td>R$ {nota.total.toFixed(2)}</td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-primary me-2"
-                        onClick={() => handleEditar(nota)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleExcluir(nota.id)}
-                      >
-                        Excluir
-                      </button>
-                    </td>
+            <div className="table-responsive">
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Material</th>
+                    <th>Quantidade (m²)</th>
+                    <th>Preço (R$/m²)</th>
+                    <th>Total</th>
+                    <th>Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {notasFiltradas.map((nota) => (
+                    <tr key={nota.id}>
+                      <td>{nota.cliente}</td>
+                      <td>{nota.material}</td>
+                      <td>{nota.quantidade}</td>
+                      <td>R$ {nota.preco.toFixed(2)}</td>
+                      <td>R$ {nota.total.toFixed(2)}</td>
+                      <td>
+                        <div className="d-flex flex-wrap gap-1">
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleEditar(nota)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleExcluir(nota.id)}
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <p>
               <strong>Total Acumulado:</strong> R${' '}
               {notasFiltradas.reduce((sum, nota) => sum + nota.total, 0).toFixed(2)}
