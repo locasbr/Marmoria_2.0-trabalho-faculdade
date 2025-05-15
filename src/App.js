@@ -11,6 +11,7 @@ import Clientes from './pages/Clientes';
 import Marmores from './pages/Marmores';
 import Movimentacoes from './pages/Movimentacoes';
 import Orcamentos from './pages/Orcamentos';
+import Cadastro from './pages/Cadastro';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <div className="container-fluid p-0">
         <Navbar />
         <Routes>
+          <Route path="/cadastro" element={<Cadastro />}/>
           <Route path="/login" element={<Login />} />
           <Route
             path="/orcamentos"
