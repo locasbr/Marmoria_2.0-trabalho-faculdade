@@ -13,7 +13,7 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
-        <Link className="navbar-brand" to="/">
+        <Link className="navbar-brand" to="/orcamentos">
           Marmoraria
         </Link>
         <button
@@ -34,11 +34,11 @@ function Navbar() {
                 Orçamentos
               </Link>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <Link className="nav-link" to="/notas">
                 Notas
               </Link>
-            </li>
+            </li> */}
             <li className="nav-item">
               <Link className="nav-link" to="/clientes">
                 Clientes

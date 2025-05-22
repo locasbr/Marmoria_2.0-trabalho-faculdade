@@ -6,7 +6,7 @@ import './App.css';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
-import Notas from './pages/Notas';
+// import Notas from './pages/Notas';
 import Clientes from './pages/Clientes';
 import Marmores from './pages/Marmores';
 import Movimentacoes from './pages/Movimentacoes';
@@ -29,14 +29,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/notas"
             element={
               <ProtectedRoute>
                 <Notas />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/clientes"
             element={
