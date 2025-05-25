@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // Adicionando o Axios
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
@@ -11,7 +12,7 @@ function Cadastro() {
     const [erro, setErro] = useState('');
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setErro('');
 
@@ -38,8 +39,23 @@ function Cadastro() {
             return;
         }
 
-        // Simulação de cadastro (substituir por chamada ao backend)
-        navigate('/login');
+        // Substituí a simulação por chamada ao backend com Axios
+        try {
+            const response = await axios.post('http://localhost:5000/cadastro', {
+                nome,
+                email,
+                senha,
+            }, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (response.status === 201) {
+                navigate('/login');
+            }
+        } catch (error) {
+            console.error('Erro no cadastro:', error);
+            const errorMsg = error.response?.data?.erro || 'Erro ao cadastrar. Tente novamente!';
+            setErro(errorMsg);
+        }
     };
 
     return (

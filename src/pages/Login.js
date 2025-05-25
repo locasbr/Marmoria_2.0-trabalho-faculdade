@@ -1,65 +1,59 @@
-    // src/pages/Login.js
-    import React, { useState } from 'react';
-    import { useNavigate } from 'react-router-dom';
-    import 'bootstrap/dist/css/bootstrap.min.css';
-    import '../App.css';
+import React, { useState } from 'react';
+import axios from 'axios'; // Adicionando o Axios
+import { useNavigate } from 'react-router-dom';
+import './Login.css'; // Seu estilo, se tiver
 
-    function Login() {
-    const [email, setEmail] = useState('');
-    const [senha, setSenha] = useState('');
-    const [erro, setErro] = useState('');
-    const navigate = useNavigate();
+function Login() {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Simulação de login (substituir por chamada ao backend)
-        if (email === 'admin@admin.com' && senha === '123456') {
-        // Salva um token fictício (substituir pelo token real do backend)
-        localStorage.setItem('token', 'ficticio-token-123');
-        navigate('/orcamentos');
-        } else {
-        setErro('Email ou senha inválidos.');
-        }
-    };
-
-    return (
-        <div className="container d-flex justify-content-center align-items-center vh-100">
-        <div className="card p-4 shadow-lg" style={{ maxWidth: '400px', width: '100%' }}>
-            <h2 className="text-center mb-4">Login</h2>
-            <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-                <label htmlFor="email" className="form-label">Email</label>
-                <input
-                type="email"
-                className="form-control"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                />
-            </div>
-            <div className="mb-3">
-                <label htmlFor="senha" className="form-label">Senha</label>
-                <input
-                type="password"
-                className="form-control"
-                id="senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-                />
-            </div>
-            <button type="submit" className="btn btn-primary w-100">Entrar</button>
-            <button type="button" className="btn btn-primary w-100" style={{marginTop: 7}} onClick={() => navigate('/cadastro')}>Cadastrar-se</button>
-            {erro && (
-                <div className="alert alert-danger mt-3" role="alert">
-                {erro}
-                </div>
-            )}
-            </form>
-        </div>
-        </div>
-    );
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5000/login', {
+        email,
+        senha,
+      }, {
+        headers: { 'Content-Type': 'application/json' }, // Mantendo o header
+      });
+      if (response.status === 200) {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Erro no login:', error);
+      alert('Email ou senha inválidos!');
     }
+  };
 
-    export default Login;
+  const handleCadastro = () => {
+    navigate('/cadastro');
+  };
+
+  return (
+    <div className="login-container">
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+        />
+        <input
+          type="password"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          placeholder="Senha"
+          required
+        />
+        <button type="submit">Entrar</button>
+
+      <button onClick={handleCadastro}>Criar Conta</button>
+      </form>
+    </div>
+  );
+}
+
+export default Login;
