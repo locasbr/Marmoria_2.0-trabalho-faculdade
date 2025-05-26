@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios'; // Adicionando o Axios
 import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../App.css';
 import './Login.css'; // Seu estilo, se tiver
 
 function Login() {
@@ -32,15 +34,20 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
       <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
+        <h2>Login</h2>
+        <div className='mb-3'>
+          <label for="email" className='form-label'>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
         />
+      </div>
+      <div className='mb-3'>
+        <label for="senha" className='form-label'>Senha</label>
         <input
           type="password"
           value={senha}
@@ -48,6 +55,7 @@ function Login() {
           placeholder="Senha"
           required
         />
+      </div>
         <button type="submit">Entrar</button>
 
       <button onClick={handleCadastro}>Criar Conta</button>
