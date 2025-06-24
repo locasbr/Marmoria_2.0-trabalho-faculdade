@@ -1,7 +1,7 @@
 # Sistema de Marmoraria
 
 ## 📋 Descrição
-Este é um sistema web desenvolvido para gerenciar as operações de uma marmoraria, como controle de estoque de mármores, cadastro de clientes, emissão de notas de venda e registro de movimentações (entradas e saídas de materiais). O projeto foi criado como parte de um trabalho acadêmico para a disciplina [NOME DA DISCIPLINA] do curso [NOME DO CURSO] na [NOME DA INSTITUIÇÃO].
+Este é um sistema web desenvolvido para gerenciar as operações de uma marmoraria, como controle de estoque de mármores, cadastro de clientes, emissão de notas de venda e registro de movimentações (entradas e saídas de materiais). O projeto foi criado como parte de um trabalho acadêmico para a disciplina (Aplic. de Cloud, Iot e Indústria 4.0 em Python) do curso Sistema de Informação na Estácio.
 
 O sistema permite:
 - Autenticar usuários com login (em desenvolvimento, aguardando integração com backend).
